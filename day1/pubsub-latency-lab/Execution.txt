@@ -1,0 +1,36 @@
+
+1. ASYNCHRONOUS PROCESSING
+
+
+One producer event:
+
+ORDER_CREATED
+
+is consumed independently by:
+
+Inventory Service
+Analytics Service
+Email Service
+
+
+RUN SERVICES
+
+Terminal 1 producer
+
+go run main.go 
+
+Terminal 2  email-consumer
+
+go run main.go 
+
+Terminal 3 inventory-consumer
+
+go run main.go 
+ 
+Terminal 4 analytics-consumer
+go run main.go 
+
+TEST
+Browser:
+
+http://localhost:9700/create-order

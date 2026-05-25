@@ -1,0 +1,74 @@
+
+
+TERMINAL 1
+cd distributed-scaling-lab/node1
+
+go run main.go
+
+TERMINAL 2
+cd distributed-scaling-lab/node2
+
+go run main.go
+TERMINAL 3
+cd distributed-scaling-lab/node3
+
+go run main.go
+TERMINAL 4
+cd distributed-scaling-lab/shard-router
+
+go run main.go
+TERMINAL 5
+cd distributed-scaling-lab/load-balancer
+
+go run main.go
+STEP 9 → TEST SHARDING
+
+Open browser:
+
+http://localhost:8180/route?user=venkatesh
+
+Try:
+
+http://localhost:8180/route?user=alex
+
+Try:
+
+http://localhost:8180/route?user=john
+EXPECTED OUTPUT
+
+User venkatesh Routed To http://localhost:9102/data
+Response: Response From NODE-2
+
+Different users route to different nodes.
+
+This demonstrates:
+
+sharding
+partitioning
+consistent hashing
+STEP 10 → TEST LOAD BALANCER
+
+Open:
+
+http://localhost:8190/balance
+
+Refresh multiple times.
+
+EXPECTED OUTPUT
+
+Request 1:
+
+NODE-1
+
+Request 2:
+
+NODE-2
+
+Request 3:
+
+NODE-3
+
+This demonstrates:
+
+round robin load balancing
+horizontal traffic distribution

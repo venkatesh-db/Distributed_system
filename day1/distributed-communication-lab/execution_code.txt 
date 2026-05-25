@@ -1,0 +1,60 @@
+
+ASYNC COMMUNICATION
+
+
+go mod init distributed-communication-lab
+
+TERMINAL 1
+
+cd payment-service
+
+go run main.go
+
+TERMINAL 2
+
+cd order-service
+
+go run main.go
+
+TERMINAL 3
+
+cd notification-worker
+
+go run main.go
+
+TERMINAL 4
+
+cd gateway-service
+
+go run main.go
+
+STEP  → TEST
+
+Browser:
+
+http://localhost:9500/order
+
+
+WHAT HAPPENS INTERNALLY
+
+SYNCHRONOUS FLOW
+
+Gateway
+   ↓
+Order Service
+   ↓
+Payment Service
+
+Gateway WAITS for payment response.
+
+ASYNCHRONOUS FLOW
+
+Order Service
+   ↓
+EventBus
+   ↓
+Notification Worker
+
+Order service DOES NOT wait.
+
+Worker processes later.

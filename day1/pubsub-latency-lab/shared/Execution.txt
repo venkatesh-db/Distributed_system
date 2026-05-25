@@ -1,0 +1,21 @@
+
+
+TERMINAL 1 producer
+go run main.go 
+
+TERMINAL 2 email-consumer
+go run main.go 
+
+TERMINAL 3 inventory-consumer
+go run main.go 
+
+TERMINAL 4 analytics-consumer
+go run main.go 
+
+STEP 1 → TEST
+
+Browser:
+
+http://localhost:9700/create-order
+
+Refresh multiple times.

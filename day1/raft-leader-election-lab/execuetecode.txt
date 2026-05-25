@@ -1,0 +1,41 @@
+
+
+TERMINAL 1
+cd raft-leader-election-lab/node1
+
+go run main.go
+
+TERMINAL 2
+cd raft-leader-election-lab/node2
+
+go run main.go
+
+TERMINAL 3
+cd raft-leader-election-lab/node3
+
+go run main.go
+
+EXPECTED OUTPUT
+NODE-1
+NODE-1 Sending Heartbeat
+NODE-2
+NODE-2 Received Heartbeat
+NODE-3
+NODE-3 Received Heartbeat
+
+NOW SIMULATE LEADER FAILURE
+
+STOP NODE-1 terminal.
+
+Press:
+CTRL + C
+
+OBSERVE NODE-2
+
+Leader NODE-1 DOWN
+NODE-2 Becoming NEW LEADER
+
+OBSERVE NODE-3
+
+Leader NODE-1 DOWN
+NODE-3 Waiting For New Election

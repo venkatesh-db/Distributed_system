@@ -1,0 +1,21 @@
+
+
+leader-node
+go run main.go 
+
+Folowed by follower 
+
+
+NOW SIMULATE LEADER FAILURE
+STOP leader terminal:
+CTRL + C
+
+
+
+Leader failure
+      ↓
+Followers detect timeout
+      ↓
+Election triggered
+      ↓
+New leader selected
