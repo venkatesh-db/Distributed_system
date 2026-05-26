@@ -1,0 +1,23 @@
+
+
+services:
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    ports:
+      - "16686:16686"
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - payment-service
+
+  payment-service:
+    build: ./payment-service
+    depends_on:
+      - notification-service
+
+  notification-service:
+    build: ./notification-service

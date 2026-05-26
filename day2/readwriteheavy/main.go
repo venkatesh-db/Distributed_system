@@ -1,0 +1,283 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/rand"
+	"sync"
+	"time"
+)
+
+//////////////////////////////////////////////////////
+// READ HEAVY STORAGE
+//////////////////////////////////////////////////////
+
+type ReadHeavyStore struct {
+	Cache map[string]string
+	Mutex sync.RWMutex
+}
+
+//////////////////////////////////////////////////////
+// WRITE HEAVY STORAGE
+//////////////////////////////////////////////////////
+
+type WriteHeavyStore struct {
+	CommitLog []string
+	Mutex     sync.Mutex
+}
+
+//////////////////////////////////////////////////////
+// GLOBAL STORES
+//////////////////////////////////////////////////////
+
+var readStore ReadHeavyStore
+
+var writeStore WriteHeavyStore
+
+//////////////////////////////////////////////////////
+// METRICS
+//////////////////////////////////////////////////////
+
+var totalReads int
+var totalWrites int
+
+//////////////////////////////////////////////////////
+// INITIALIZE STORES
+//////////////////////////////////////////////////////
+
+func initializeStores() {
+
+	readStore = ReadHeavyStore{
+		Cache: make(map[string]string),
+	}
+
+	writeStore = WriteHeavyStore{
+		CommitLog: []string{},
+	}
+
+	//////////////////////////////////////////////////
+	// PRELOAD CACHE
+	//////////////////////////////////////////////////
+
+	for i := 1; i <= 100; i++ {
+
+		key := fmt.Sprintf(
+			"user:%d",
+			i,
+		)
+
+		value := fmt.Sprintf(
+			"profile-data-%d",
+			i,
+		)
+
+		readStore.Cache[key] = value
+	}
+}
+
+//////////////////////////////////////////////////////
+// READ HEAVY OPTIMIZED READ
+//////////////////////////////////////////////////////
+
+func readHeavyQuery(
+	userID string,
+) string {
+
+	//////////////////////////////////////////////////
+	// READ LOCK
+	//////////////////////////////////////////////////
+
+	readStore.Mutex.RLock()
+
+	value := readStore.Cache[userID]
+
+	readStore.Mutex.RUnlock()
+
+	totalReads++
+
+	log.Printf(
+		"[READ-HEAVY] CACHE HIT USER=%s",
+		userID,
+	)
+
+	//////////////////////////////////////////////////
+	// FAST CACHE ACCESS
+	//////////////////////////////////////////////////
+
+	time.Sleep(10 * time.Millisecond)
+
+	return value
+}
+
+//////////////////////////////////////////////////////
+// WRITE HEAVY OPTIMIZED WRITE
+//////////////////////////////////////////////////////
+
+func writeHeavyInsert(
+	event string,
+) {
+
+	writeStore.Mutex.Lock()
+
+	//////////////////////////////////////////////////
+	// APPEND ONLY LOG
+	//////////////////////////////////////////////////
+
+	writeStore.CommitLog = append(
+		writeStore.CommitLog,
+		event,
+	)
+
+	writeStore.Mutex.Unlock()
+
+	totalWrites++
+
+	log.Printf(
+		"[WRITE-HEAVY] APPEND LOG EVENT=%s",
+		event,
+	)
+
+	//////////////////////////////////////////////////
+	// SEQUENTIAL WRITE
+	//////////////////////////////////////////////////
+
+	time.Sleep(5 * time.Millisecond)
+}
+
+//////////////////////////////////////////////////////
+// READ CLIENTS
+//////////////////////////////////////////////////////
+
+func readClients(
+	clientID int,
+) {
+
+	for {
+
+		userID := fmt.Sprintf(
+			"user:%d",
+			rand.Intn(100),
+		)
+
+		result := readHeavyQuery(userID)
+
+		log.Printf(
+			"[CLIENT-%d] READ RESULT=%s",
+			clientID,
+			result,
+		)
+
+		time.Sleep(
+			time.Duration(rand.Intn(100)) *
+				time.Millisecond,
+		)
+	}
+}
+
+//////////////////////////////////////////////////////
+// WRITE CLIENTS
+//////////////////////////////////////////////////////
+
+func writeClients(
+	clientID int,
+) {
+
+	for {
+
+		event := fmt.Sprintf(
+			"payment-event-%d",
+			time.Now().UnixNano(),
+		)
+
+		writeHeavyInsert(event)
+
+		log.Printf(
+			"[CLIENT-%d] WRITE SUCCESS",
+			clientID,
+		)
+
+		time.Sleep(
+			time.Duration(rand.Intn(50)) *
+				time.Millisecond,
+		)
+	}
+}
+
+//////////////////////////////////////////////////////
+// METRICS DASHBOARD
+//////////////////////////////////////////////////////
+
+func metricsDashboard() {
+
+	for {
+
+		time.Sleep(5 * time.Second)
+
+		fmt.Println()
+		fmt.Println("================================")
+
+		fmt.Printf(
+			"TOTAL READS=%d\n",
+			totalReads,
+		)
+
+		fmt.Printf(
+			"TOTAL WRITES=%d\n",
+			totalWrites,
+		)
+
+		fmt.Printf(
+			"COMMIT LOG SIZE=%d\n",
+			len(writeStore.CommitLog),
+		)
+
+		fmt.Printf(
+			"CACHE SIZE=%d\n",
+			len(readStore.Cache),
+		)
+
+		fmt.Println("================================")
+		fmt.Println()
+	}
+}
+
+//////////////////////////////////////////////////////
+// MAIN
+//////////////////////////////////////////////////////
+
+func main() {
+
+	rand.Seed(time.Now().UnixNano())
+
+	initializeStores()
+
+	log.Println(
+		"READ VS WRITE HEAVY STORAGE LAB STARTED",
+	)
+
+	//////////////////////////////////////////////////
+	// READ CLIENTS
+	//////////////////////////////////////////////////
+
+	for i := 1; i <= 10; i++ {
+
+		go readClients(i)
+	}
+
+	//////////////////////////////////////////////////
+	// WRITE CLIENTS
+	//////////////////////////////////////////////////
+
+	for i := 1; i <= 5; i++ {
+
+		go writeClients(i)
+	}
+
+	//////////////////////////////////////////////////
+	// METRICS
+	//////////////////////////////////////////////////
+
+	go metricsDashboard()
+
+	select {}
+}

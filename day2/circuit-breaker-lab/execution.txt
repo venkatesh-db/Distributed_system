@@ -1,0 +1,12 @@
+
+
+docker-compose up --build
+http://localhost:8080/pay.  Refresh multiple times.
+
+
+Logs show:
+
+Circuit Breaker Triggered
+BUT gateway still responds successfully.
+
+http://localhost:16686
